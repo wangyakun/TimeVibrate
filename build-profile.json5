@@ -1,0 +1,41 @@
+{
+  "app": {
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "C:\\Users\\36935\\.ohos\\config\\auto_debug_TimeVibrate_com.example.timevibrate_260086000242824011.cer",
+          "storePassword": "0000001A2AA18845DC03B8D47A92DC476CA4E6B8641F2E12A1071B1A57E64BD27B382C8FE14AE0D8D05A",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001AA3D2D17167ECD97653CB0FBB40275C31F36DD4C01E26738D466CD2B9CFB11425E521499D1965",
+          "profile": "C:\\Users\\36935\\.ohos\\config\\auto_debug_TimeVibrate_com.example.timevibrate_260086000242824011.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "C:\\Users\\36935\\.ohos\\config\\auto_debug_TimeVibrate_com.example.timevibrate_260086000242824011.p12"
+        }
+      }
+    ],
+    "compileSdkVersion": 9,
+    "compatibleSdkVersion": 9,
+    "products": [
+      {
+        "name": "default",
+        "signingConfig": "default",
+      }
+    ]
+  },
+  "modules": [
+    {
+      "name": "entry",
+      "srcPath": "./entry",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    }
+  ]
+}

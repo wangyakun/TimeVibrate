@@ -10,6 +10,12 @@ enum VibrateType {
 struct Index {
   @State message: string = '振动报时'
   @State messageDetail: string = ''
+  // 当前变红的字符索引（-1表示无变红字符，初始全黑）
+  @State redIndex: number = -1;
+  // 控制是否处于动画过程中（防止重复点击）
+  @State isAnimating: boolean = false;
+  // 定义需要变红的字符索引（跳过冒号，即索引2）
+  private validIndices = [0, 1, 3, 4];
   // 振动时长（单位：毫秒）
   private vibrationDot: number = 100
   private vibrationDash: number = 3 * this.vibrationDot
@@ -35,15 +41,22 @@ struct Index {
   build() {
     Row() {
       Column({ space: 10 }) {
-        Text(this.message)
-          .fontSize(30)
-          .fontWeight(FontWeight.Bold)
-
+        Row({ space: 0 }) {
+          ForEach([...Array(this.message.length).keys()], (item:number) => {
+            Text(this.message[item])
+              .fontSize(40)
+              .fontWeight(FontWeight.Bold)
+                // 核心：当前索引匹配则变红，否则黑色
+              .fontColor(this.redIndex === item ? Color.Red : Color.Black);
+          })
+        }
         // Text(this.messageDetail)
         //   .fontSize(25)
         //   .fontWeight(FontWeight.Normal)
 
-        Button('振动报时').onClick(async () => {
+        Button('振动报时')
+          .enabled(!this.isAnimating) // 动画中按钮置灰不可点击
+          .onClick(async () => {
           await this.vibrateTime(VibrateType.Direct)
         })
       }
@@ -237,11 +250,16 @@ struct Index {
     }
   }
 
-  private async vibrateDigital(digital: number, messageCurrTime: string, messageDescribe: string, vibrateType: VibrateType): Promise<void> {
+  private async vibrateDigital(digital: number, messageCurrTime: string, redIndex: number, vibrateType: VibrateType): Promise<void> {
     if (!Number.isInteger(digital) || digital > 9 || digital < 0) {
       throw new Error("输入只能是0-9数字");
     }
-    this.messageDetail = `当前时间：${messageCurrTime}， 正在振动 ${messageDescribe}: `;
+    if (!this.validIndices.includes(redIndex)) {
+      throw new Error("redIndex参数错误");
+    }
+    const messageDescribe = ['时 十位', '时 个位', '冒号', '分 十位', '分 个位'];
+    this.redIndex = redIndex;
+    this.messageDetail = `当前时间：${messageCurrTime}， 正在振动 ${messageDescribe[redIndex]}: `;
     switch (vibrateType) {
       case VibrateType.Morse:
         await this.executeArrayVibrationSequential(
@@ -270,19 +288,23 @@ struct Index {
   }
 
   private async vibrateTime(vibrateType: VibrateType): Promise<void> {
-    const [hour, minute, second] = this.getCurrTimeHMS()
-    const currTime = `${this.fillTime(hour)}:${this.fillTime(minute)}:${this.fillTime(second)}`;
+    this.isAnimating = true;
+    this.redIndex = -1;
+    const [hour, minute, second] = this.getCurrTimeHMS();
+    const currTime = `${this.fillTime(hour)}:${this.fillTime(minute)}`;
 
     this.stopAllVibration(); // 重置终止状态+停止振动
 
     this.message = currTime
     this.messageDetail = `当前时间：${currTime}， 振动报时开始 `;
     //时 十位
-    await this.vibrateDigital(Math.floor(hour / 10), currTime, '时 十位', vibrateType)
-    await this.vibrateDigital(hour % 10, currTime, '时 个位', vibrateType)
-    await this.vibrateDigital(Math.floor(minute / 10), currTime, '分 十位', vibrateType)
-    await this.vibrateDigital(minute % 10, currTime, '分 个位', vibrateType)
+    await this.vibrateDigital(Math.floor(hour / 10), currTime, 0, vibrateType)
+    await this.vibrateDigital(hour % 10, currTime, 1, vibrateType)
+    await this.vibrateDigital(Math.floor(minute / 10), currTime, 3, vibrateType)
+    await this.vibrateDigital(minute % 10, currTime, 4, vibrateType)
 
     this.messageDetail = `当前时间：${currTime}， 振动报时完成 `;
+    this.isAnimating = false;
+    this.redIndex = -1;
   }
 }

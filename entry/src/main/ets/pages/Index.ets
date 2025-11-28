@@ -8,20 +8,29 @@ enum VibrateType {
 @Entry
 @Component
 struct Index {
-  @State message: string = 'Hello World'
-  @State messageDetail: string = 'Hello World'
+  @State message: string = '振动报时'
+  @State messageDetail: string = ''
   // 振动时长（单位：毫秒）
-  private vibrationDurations: number[] = [1000, 1500, 800, 2000]
   private vibrationDot: number = 100
   private vibrationDash: number = 3 * this.vibrationDot
   // 两次振动之间的固定间隔（单位：毫秒）
-  private intervalTime: number = 1000
   private intervalTimeMorse: number = 1000
   private intervalTimeDirect: number = 100
   // 不同位数振动之间的固定间隔（单位：毫秒）
   private intervalTimeDigit: number = 1000
   // 控制振动序列是否终止（核心：用于中断顺序执行）
   private isAbort: boolean = false
+
+  // // 组件首次渲染时执行
+  // aboutToAppear() {
+  //   void this.vibrateTime(VibrateType.Direct);
+  // }
+
+  // 页面每次显示（包括 App 首次打开、从后台切回）时触发
+  onPageShow() {
+    // 异步函数需要用void包装（避免生命周期函数返回Promise）
+    void this.vibrateTime(VibrateType.Direct);
+  }
 
   build() {
     Row() {
@@ -30,61 +39,11 @@ struct Index {
           .fontSize(30)
           .fontWeight(FontWeight.Bold)
 
-        Text(this.messageDetail)
-          .fontSize(25)
-          .fontWeight(FontWeight.Normal)
+        // Text(this.messageDetail)
+        //   .fontSize(25)
+        //   .fontWeight(FontWeight.Normal)
 
-        // 获取当前时间按钮
-        Button('get time').onClick(() => {
-          const [hour, minute, second] = this.getCurrTimeHMS()
-          this.message = `${this.fillTime(hour)}:${this.fillTime(minute)}:${this.fillTime(second)}`;
-        })
-
-        // 持续振动2秒按钮
-        Button('shake2s').onClick(async () => {
-          this.stopAllVibration(); // 终止已有序列
-          // 重置终止状态
-          this.isAbort = false;
-          await this.singleVibrationPromise(2000);
-          this.message = '2秒振动结束';
-        })
-
-        // 停止所有振动按钮
-        Button('stop shake').onClick(() => {
-          this.stopAllVibration();
-          this.message = '振动序列已终止';
-        })
-
-        // 数组序列振动按钮（顺序执行版）
-        Button('数组序列振动（顺序执行）')
-          .onClick(async () => {
-            this.stopAllVibration(); // 重置终止状态+停止振动
-            await this.executeArrayVibrationSequential(
-              this.vibrationDurations,
-              this.intervalTime
-            );
-          })
-
-        Button('test').onClick(async () => {
-          this.stopAllVibration(); // 重置终止状态+停止振动
-          await this.executeArrayVibrationSequential(
-            this.vibrationDurations,
-            this.intervalTime
-          );
-          await this.wait(2000);
-          await this.executeArrayVibrationSequential(
-            [100, 1000, 100, 1000],
-            this.intervalTime
-          );
-          await this.wait(2000);
-          await this.singleVibrationPromise(2000);
-          this.message = '振动结束';
-        })
-
-        Button('振动报时（摩斯码）').onClick(async () => {
-          await this.vibrateTime(VibrateType.Morse)
-        })
-        Button('振动报时（直接数字，0长振）').onClick(async () => {
+        Button('振动报时').onClick(async () => {
           await this.vibrateTime(VibrateType.Direct)
         })
       }
@@ -170,13 +129,13 @@ struct Index {
           (error) => {
             if (error) {
               console.error(`单次振动失败: code=${error.code}, msg=${error.message}`);
-              this.message = `振动${duration}ms失败`;
+              this.messageDetail = `振动${duration}ms失败`;
               resolve();
               return;
             }
 
             console.log(`开始振动${duration}ms`);
-            this.message = `正在振动${duration}ms...`;
+            this.messageDetail = `正在振动${duration}ms...`;
 
             // 振动时长到后停止，并resolve
             setTimeout(() => {
@@ -197,7 +156,7 @@ struct Index {
         );
       } catch (err) {
         console.error(`单次振动异常: code=${err.code}, msg=${err.message}`);
-        this.message = `振动${duration}ms异常`;
+        this.messageDetail = `振动${duration}ms异常`;
         resolve();
       }
     });
@@ -217,7 +176,7 @@ struct Index {
       }
 
       console.log(`开始等待${ms}ms间隔...`);
-      this.message = `等待${ms}ms间隔中...`;
+      this.messageDetail = `等待${ms}ms间隔中...`;
 
       setTimeout(() => {
         resolve(); // 间隔结束，resolve Promise
@@ -251,7 +210,7 @@ struct Index {
 
     // 序列执行完成/终止后提示
     if (!this.isAbort) {
-      this.message = '振动序列执行完成';
+      this.messageDetail = '振动序列执行完成';
     }
     // 重置终止状态
     this.isAbort = false;
@@ -315,13 +274,15 @@ struct Index {
     const currTime = `${this.fillTime(hour)}:${this.fillTime(minute)}:${this.fillTime(second)}`;
 
     this.stopAllVibration(); // 重置终止状态+停止振动
+
+    this.message = currTime
+    this.messageDetail = `当前时间：${currTime}， 振动报时开始 `;
     //时 十位
     await this.vibrateDigital(Math.floor(hour / 10), currTime, '时 十位', vibrateType)
     await this.vibrateDigital(hour % 10, currTime, '时 个位', vibrateType)
     await this.vibrateDigital(Math.floor(minute / 10), currTime, '分 十位', vibrateType)
     await this.vibrateDigital(minute % 10, currTime, '分 个位', vibrateType)
 
-    this.message = '振动报时完成'
     this.messageDetail = `当前时间：${currTime}， 振动报时完成 `;
   }
 }

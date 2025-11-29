@@ -44,7 +44,7 @@ struct Index {
         Row({ space: 0 }) {
           ForEach([...Array(this.message.length).keys()], (item:number) => {
             Text(this.message[item])
-              .fontSize(40)
+              .fontSize(80)
               .fontWeight(FontWeight.Bold)
                 // 核心：当前索引匹配则变红，否则黑色
               .fontColor(this.redIndex === item ? Color.Red : Color.Black);
@@ -54,7 +54,11 @@ struct Index {
         //   .fontSize(25)
         //   .fontWeight(FontWeight.Normal)
 
-        Button('振动报时')
+        Button('开始振动报时')
+          .fontSize(30)
+          .fontWeight(FontWeight.Bold)
+          .width('70%')
+          .height(80)
           .enabled(!this.isAnimating) // 动画中按钮置灰不可点击
           .onClick(async () => {
           await this.vibrateTime(VibrateType.Direct)

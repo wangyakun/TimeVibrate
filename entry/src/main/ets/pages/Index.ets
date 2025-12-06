@@ -52,18 +52,21 @@ struct Index {
               .fontSize(80)
               .fontWeight(FontWeight.Bold)
                 // 核心：当前索引匹配则变红，否则黑色
-              .fontColor(this.redIndex === item ? Color.Red : Color.Black);
+              .fontColor(this.redIndex === item ? Color.Orange : Color.White);
           })
         }
         // Text(this.messageDetail)
         //   .fontSize(25)
         //   .fontWeight(FontWeight.Normal)
 
-        Button('开始振动报时')
+        Button('振动报时')
           .fontSize(30)
           .fontWeight(FontWeight.Bold)
           .width('70%')
           .height(80)
+          .backgroundColor(Color.Orange)
+          .fontColor(Color.Black)
+          .type(ButtonType.Capsule)
           .enabled(!this.isAnimating) // 动画中按钮置灰不可点击
           .onClick(async () => {
           await this.vibrateTime(VibrateType.Direct)
@@ -74,6 +77,7 @@ struct Index {
       .justifyContent(FlexAlign.Center)
     }
     .height('100%')
+    .backgroundColor(Color.Black)
   }
 
   private getCurrTimeHMS(): [number, number, number] {

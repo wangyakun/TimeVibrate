@@ -1,9 +1,12 @@
 import vibrator from '@ohos.vibrator';
+import audio from '@ohos.multimedia.audio';
 
 enum VibrateType {
   Morse,
   Direct
 }
+
+let audioVolumeManager = audio.getAudioManager().getVolumeManager();
 
 @Entry
 @Component
@@ -27,10 +30,12 @@ struct Index {
   // 控制振动序列是否终止（核心：用于中断顺序执行）
   private isAbort: boolean = false
 
-  // // 组件首次渲染时执行
-  // aboutToAppear() {
-  //   void this.vibrateTime(VibrateType.Direct);
-  // }
+  // 组件首次渲染时执行
+  aboutToAppear() {
+    audioVolumeManager.on('volumeChange', (volumeEvent) => {
+      void this.vibrateTime(VibrateType.Direct);
+    });
+  }
 
   // 页面每次显示（包括 App 首次打开、从后台切回）时触发
   onPageShow() {
